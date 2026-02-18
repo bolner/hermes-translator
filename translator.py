@@ -108,7 +108,7 @@ class Translator:
                 raise RuntimeError("The sentinel tokens are in reverse order in a translation "
                     f"response: '{response}'.\nPrompt:\n'{segments[i].get_prompt()}'.")
             
-            segments[i].set_target_text(response[pos1 + len(self.__sentinelToken1) : pos2])
+            segments[i].set_target_text(response[pos1 + len(self.__sentinelToken1) : pos2].strip())
             segments[i].set_target_start_ms(segments[i].get_source_start_ms())
             segments[i].set_target_end_ms(segments[i].get_source_end_ms())
             segments[i].set_prompt(None)

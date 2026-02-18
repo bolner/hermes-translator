@@ -26,8 +26,8 @@ model:
   # (like "google/madlad400-3b-mt") in the 'model.name' setting, but you have to use a path
   # to a local folder that contains all files.
   # You can set it to false first, pull the model, then turn it to offline mode.
-  # Then the model will still be used from the cache dir: ~/.cache/huggingface/hub/
-  offline-mode: true
+  # Then the model will still be used from the cache dir: ~/.cache/huggingface/hub/...
+  offline-mode: false
 
   # The only currently supported model type is "madlad".
   type: madlad

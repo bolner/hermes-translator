@@ -40,18 +40,30 @@ class TestWindow(unittest.TestCase):
         ])
 
         self.assertTrue(window.next(), "window.next stopped after the first step.")
-        self.test_window_state(window=window, before=[], current="Sentence 1.",
-            after=["Sentence 2. Sentence 2. Sentence 2. Sentence 2."])
+        self.check_window_state(window=window, before_chk=[], current_chk="Sentence 1.",
+            after_chk=["Sentence 2. Sentence 2. Sentence 2. Sentence 2."])
         
         self.assertTrue(window.next(), "window.next stopped after the second step.")
-        
-    
-    def test_window_state(self, window: Window, before: list[str], current: str,
-                          after: list[str]):
-        before = window.get_segments_before_current()
-        current = window.get_current_segment()
-        after = window.get_segments_after_current()
 
+    def check_window_state(self, window: Window, before_chk: list[str], current_chk: str,
+                          after_chk: list[str]):
+        before = self.segment_list_to_string_list(window.get_segments_before_current())
+        self.assertTrue(before == before_chk, "Mismatch in the 'before' segment list. "
+                f"before = {before}\nbefore_chk = {before_chk}")
+        current = window.get_current_segment().get_source_text()
+        self.assertTrue(current == current_chk, "Mismatch in the 'current' segment list."
+                f"current = {current}\ncurrent_chk = {current_chk}")
+        after = self.segment_list_to_string_list(window.get_segments_after_current())
+        self.assertTrue(after == after_chk, "Mismatch in the 'after' segment list."
+                f"after = {after}\nafter_chk = {after_chk}")
+
+    def segment_list_to_string_list(self, input: list[Segment]):
+        list = []
+
+        for item in input:
+            list.append(item.get_source_text())
+
+        return list
 
 if __name__ == '__main__':
     unittest.main()
