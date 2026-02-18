@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from primitives.model_interface import ModelInterface
-
 class Segment:
     """
     Represents a text segment with its tokenized form.
@@ -62,9 +60,6 @@ class Segment:
 
     def get_token_list_id(self) -> int:
         return self.__token_list_id
-
-    def get_model(self) -> ModelInterface:
-        return self.__model
 
     def get_target_id(self) -> int:
         """
