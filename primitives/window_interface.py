@@ -36,3 +36,7 @@ class WindowInterface(ABC):
     @abstractmethod
     def get_segments_after_current(self) -> list[Segment]:
         pass
+
+    @abstractmethod
+    def get_progress_pct(self) -> int:
+        pass

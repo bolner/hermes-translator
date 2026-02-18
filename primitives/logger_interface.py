@@ -19,4 +19,22 @@ from abc import ABC, abstractmethod
 class LoggerInterface(ABC):
     @abstractmethod
     def log(self, text: str):
+        """
+        Writes the entry into the log file.
+        """
+        pass
+
+    @abstractmethod
+    def log_print(self, text: str):
+        """
+        Not only writes into the log file,
+        but also prints to STDOUT.
+        """
+        pass
+
+    @abstractmethod
+    def close(self):
+        """
+        Close the log file.
+        """
         pass

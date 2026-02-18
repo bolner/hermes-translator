@@ -33,4 +33,10 @@ class SegmentProcessing:
                     segment.set_skipped(True)
                     continue
                 
-                segment.set_source_text(newstr)
+                segment.set_source_text(self.uppercase_after_dot(newstr))
+
+    def uppercase_after_dot(self, text):
+        # The madlad model can go crazy because of lower-case letters
+        #   that come after a dot.
+        return re.sub(r'(\.\s*)([a-z])', lambda m: m.group(1) + m.group(2).upper(),
+                      text, flags=re.IGNORECASE)

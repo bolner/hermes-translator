@@ -33,3 +33,6 @@ class TestSegmentProcessing(unittest.TestCase):
 
         self.assertEqual(list[0].get_source_text(), "First Sentence.",
             "Processing the first sentence failed.")
+        self.assertTrue(list[1].is_skipped(), "The second segment should be skipped: [THIS WILL GET REMOVED]")
+        self.assertEqual(list[2].get_source_text(), "Last Sentence.",
+            "Processing the last sentence failed.")

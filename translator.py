@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import re
 from primitives.config_parser_interface import ConfigParserInterface
 from primitives.segment import Segment
 from primitives.window_interface import WindowInterface
@@ -40,6 +41,9 @@ class Translator:
         self.__sentinelToken2 = config.get_sentinel_token_template().replace(
             "{ID}", "1"
         )
+        self.__newline_token = config.get_sentinel_token_template().replace(
+            "{ID}", "12"
+        )
 
     def run(self):
         ############################################################
@@ -58,6 +62,7 @@ class Translator:
             if len(prompt_batch) >= self.__inference_batch_size:
                 self.__inference(prompt_batch)
                 prompt_batch.clear()
+                self.__logger.log_print(f"Progress: {self.__window.get_progress_pct()}%")
 
         if len(prompt_batch) > 0:
             self.__inference(prompt_batch)
@@ -73,14 +78,16 @@ class Translator:
         response.append(self.__context)
 
         for segment in self.__window.get_segments_before_current():
-            response.append(segment.get_source_text())
+            text = re.sub(f"\\s*{self.__newline_token}\\s*", " ", segment.get_source_text())
+            response.append(text)
 
         response.append(self.__sentinelToken1)
         response.append(self.__window.get_current_segment().get_source_text())
         response.append(self.__sentinelToken2)
 
         for segment in self.__window.get_segments_after_current():
-            response.append(segment.get_source_text())
+            text = re.sub(f"\\s*{self.__newline_token}\\s*", " ", segment.get_source_text())
+            response.append(text)
         
         prompt = " ".join(response)
 

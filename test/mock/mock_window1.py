@@ -50,3 +50,6 @@ class MockWindow1(WindowInterface):
             response.append(self.__segments[i])
         
         return response
+
+    def get_progress_pct(self) -> int:
+        return int(((self.__cursor + 1) / len(self.__segments)) * 100)

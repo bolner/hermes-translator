@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
 from primitives.logger_interface import LoggerInterface
 
 class MockLogger1(LoggerInterface):
@@ -23,5 +22,11 @@ class MockLogger1(LoggerInterface):
     def log(self, text: str):
         self.__entries.append(text)
     
+    def log_print(self, text: str):
+        self.log(text)
+
+    def close(self):
+        pass
+
     def get_entries(self) -> list[str]:
         return self.__entries

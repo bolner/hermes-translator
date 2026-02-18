@@ -23,7 +23,11 @@ class Window(WindowInterface):
         if len(segments) < 1:
             raise ValueError("Empty segment list passed in the Window constructor.")
         
-        self.__segments: list[Segment] = segments
+        self.__segments: list[Segment] = []
+        for segment in segments:
+            if not segment.is_skipped():
+                self.__segments.append(segment)
+
         self.__maxCharsBefore: int = config.get_max_chars_before()
         self.__maxCharsAfter: int = config.get_max_chars_after()
         self.__maxSegmentsBefore: int = config.get_max_segments_before()
@@ -100,3 +104,6 @@ class Window(WindowInterface):
             response.append(self.__segments[i])
         
         return response
+
+    def get_progress_pct(self) -> int:
+        return int(((self.__cursor + 1) / len(self.__segments)) * 100)

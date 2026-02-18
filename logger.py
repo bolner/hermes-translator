@@ -30,6 +30,9 @@ class Logger(LoggerInterface):
         self._log_file_handler = open(self._path, "a", encoding="utf-8")
 
     def log(self, text: str):
+        """
+        Writes the entry into the log file.
+        """
         if self._log_file_handler is None:
             raise RuntimeError("Log file was closed already before a write attempt: "
                 f"'{text}'")
@@ -38,7 +41,19 @@ class Logger(LoggerInterface):
         self._log_file_handler.write(ts + "\n\n" + text + "\n")
         self._log_file_handler.write("-------------------------\n")
         self._log_file_handler.flush()
+    
+    def log_print(self, text: str):
+        """
+        Not only writes into the log file,
+        but also prints to STDOUT.
+        """
+        self.log(text)
+        ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"- {ts}: {text}")
 
     def close(self):
+        """
+        Close the log file.
+        """
         self._log_file_handler.close()
         self._log_file_handler = None

@@ -17,36 +17,45 @@ import os
 from madlad_model import MadladModel
 from translator import Translator
 from config_parser import ConfigParser
-from primitives.segment import Segment
 from window import Window
 from logger import Logger
 from segment_processing import SegmentProcessing
+from srt_reader import SrtReader
+from srt_writer import SrtWriter
+from test.mock.mock_model1 import MockModel1
+from cli_parser import CliParser
 
-config = ConfigParser("config-madlad.yaml")
+cli = CliParser()
+
+config = ConfigParser(cli.get_config_path())
 if config.get_offline_mode():
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
     os.environ["HF_HUB_OFFLINE"] = "1"
 
 processing = SegmentProcessing(config)
 logger = Logger(config)
-model = MadladModel(config, logger, device = "cuda:0")
 
-print("- Model loaded on device:", model.get_device())
+logger.log_print(f"Config file: {cli.get_config_path()}")
+logger.log_print(f"Loading input file: {cli.get_input_path()}")
+srt_reader = SrtReader(cli.get_input_path(), config)
+segments = srt_reader.get_segments()
 
-# SRT lib doc
-# https://srt.readthedocs.io/en/latest/api.html
-
-segments = [
-    Segment(1, "Ez az első mondat.\nVagy nem.", 0, 0),
-    Segment(2, "Ez a mondat lesz a végső.\nDe lehet, hogy mégsem, mert sok "
-        "mondatból könnyebb interpolálni egy releváns jelentést.", 0, 0),
-    Segment(3, "Utolsó mondathoz képest, ez nem is rossz!", 0, 0)
-]
-
-window = Window(config, segments)
-translator = Translator(model, config, window, logger)
 processing.process(segments)
-translator.run()
+window = Window(config, segments)
 
-for segment in segments:
-    print(segment.get_target_text())
+if not cli.is_dry_run():
+    logger.log_print(f"Loading model: {config.get_model_name()}")
+    model = MadladModel(config, logger, device = "cuda:0") # MockModel1()
+    logger.log_print(f"Model loaded on device: {model.get_device()}")
+
+    translator = Translator(model, config, window, logger)
+    logger.log_print(f"Starting translation...")
+    translator.run()
+else:
+    for segment in segments:
+        segment.set_target_text(segment.get_source_text())
+
+logger.log_print(f"Writing results to: {cli.get_output_path()}")
+SrtWriter(cli.get_output_path(), segments, config)
+
+logger.close()

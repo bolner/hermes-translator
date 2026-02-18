@@ -47,8 +47,11 @@ model:
   sentinel-token-template: "<extra_id_{ID}>"
 
   # How many inferences (prompts) to run in parallel.
-  # (If this is low, then the GPU will not be fully utilized.)
-  inference-batch-size: 4
+  # If this is low, then the GPU will not be fully utilized.
+  # If it is high, then it uses a lot of memory:
+  #     - For 24 GB VRAM, use: inference-batch-size: 24 (If max context is 12 segments)
+  #     - For 16 GB VRAM, use: inference-batch-size: 8 (If max context is 12 segments)
+  inference-batch-size: 24
 
 # The 2-3-letter BCP-47 code of the target language.
 # (The source language is auto-detected by the model. To make sure the
@@ -60,10 +63,10 @@ target-language: en
 #   and after the current segment as a context for translation.
 #   It doesn't split segments: If adding a segment would exceed the limit, it is skipped.
 context-window:
-  max-chars-before: 1024
-  max-segments-before: 10
-  max-chars-after: 1024
-  max-segments-after: 10
+  max-chars-before: 728
+  max-segments-before: 6
+  max-chars-after: 728
+  max-segments-after: 6
 
 document:
   # The static context is the secondary source of context. It is
@@ -79,14 +82,22 @@ document:
   # When a segment becomes empty after replacements, it will be skipped.
   # (This section is optional. You can remove it.)
   replace-rules:
+    # Remove any text within square brackets (e.g., [MUSICA MISTERIOSA], [COLPI DI TOSSE])
+    - pattern: "\\[[^\\]]*\\]"
+      replacement: ""
+    
+    # In Italian, "ì" is a common shorthand for "sì"
+    - pattern: "([^\\w]+|^)ì([^\\w]+|$)"
+      replacement: "\\1sì\\2"
+    
+    # Same for a standalone "s" (also Italian-specific)
+    - pattern: "([^\\w]+|^)s([^\\w]+|$)"
+      replacement: "\\1sì\\2"
+    
     # Remove any newline and whitespace characters, because those
     #   can make the madlad model behave erratically.
     - pattern: "\\s+"
       replacement: " "
-
-    # Remove any text within square brackets (e.g., [MUSICA MISTERIOSA], [COLPI DI TOSSE])
-    - pattern: "\\[[^\\]]*\\]"
-      replacement: ""
 
 # The start times are the same as in the source subtitles.
 # The end times are adjusted based on reading speed.
