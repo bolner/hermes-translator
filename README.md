@@ -173,9 +173,7 @@ context-window:
 document:
   # The static context is the secondary source of context. It is
   #   always appended before the first window segment in the translation
-  #   prompt. You must use the source language. You can use the --one-shot
-  #   option of the Hermes Translator app to translate this text alone
-  #   to the source language.
+  #   prompt. You must use the source language.
   static-context:
     # "Subtitles for an Italian drama movie:"
     "Sottotitoli di un film drammatico italiano:"
