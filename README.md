@@ -5,7 +5,8 @@ Contextual translation on local GPUs. Supports the `.srt` subtitle
 format and the following model:
 - [https://huggingface.co/google/madlad400-3b-mt](https://huggingface.co/google/madlad400-3b-mt)
 
-The `madlad400-3b-mt` model allocates around 11G VRAM by default. I've tested the application with it on an `RTX 3090 Ti`.
+The `madlad400-3b-mt` model allocates around 11G VRAM by default.
+I've tested this app with that model on an `RTX 3090 Ti`.
 
 It allows high-quality translations that compete with professional applications.
 And that was the main motivation behind this tool: There were mostly three kinds of free subtitle-translator applications: 
@@ -24,7 +25,9 @@ solid context even for the shortest utterance.
 
 - [Setup on Debian 13](#setup-on-debian-13)
 - [Usage](#usage)
-    - [Running the tests](#running-the-tests)
+  - [Translating an srt file](#translating-an-srt-file)
+  - [Customizing the config file](#customizing-the-config-file)
+  - [Running the unit tests](#running-the-unit-tests)
 
 <!-- /TOC -->
 
@@ -99,12 +102,16 @@ $ make run config=config-madlad.yaml input=my-sub-2.srt output=my-sub-2-en.srt
 ## Customizing the config file
 
 We need a separate config file for each combinations of:
-- Source language
+- Source language:
+  - The madlad model can get crazy easily if it encounters some special characters
+      or character combinations. Which depend on the language. The replace rules
+      are mostly for solving those issues.
 - Target language
 - GPU (Because of memory limitations and performance differences.)
 
-Please send in your config files for new languages.
-(Each source language requires different "replace-rules". See below.)
+Please send in your config files for new languages!
+(Each source language requires different "replace-rules". See below.
+The current config file is for Italian source language.)
 
 ```yaml
 model:
