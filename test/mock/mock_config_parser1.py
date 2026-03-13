@@ -73,3 +73,6 @@ class MockConfigParser1(ConfigParserInterface):
 
     def get_offline_mode(self) -> bool:
         return True
+
+    def get_failed_translation_marker(self) -> str:
+        return "%TRANSLATION_FAILED%"

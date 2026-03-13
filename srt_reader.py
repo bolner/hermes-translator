@@ -16,10 +16,12 @@ limitations under the License.
 
 import srt
 from primitives.segment import Segment
+from primitives.srt_reader_interface import SrtReaderInterface
 from primitives.config_parser_interface import ConfigParserInterface
 
-class SrtReader:
+class SrtReader(SrtReaderInterface):
     def __init__(self, path: str, config: ConfigParserInterface):
+        self.__path = path
         newline_token = config.get_sentinel_token_template().replace("{ID}", "12")
 
         self.__segments: list[Segment] = []
@@ -42,3 +44,6 @@ class SrtReader:
 
     def get_segments(self) -> list[Segment]:
         return self.__segments
+
+    def get_path(self):
+        return self.__path

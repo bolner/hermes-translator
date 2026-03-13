@@ -20,10 +20,11 @@ from config_parser import ConfigParser
 from window import Window
 from logger import Logger
 from segment_processing import SegmentProcessing
-from srt_reader import SrtReader
 from srt_writer import SrtWriter
 from test.mock.mock_model1 import MockModel1
 from cli_parser import CliParser
+from primitives.segment import Segment
+from srt_reader import SrtReader
 
 cli = CliParser()
 
@@ -32,18 +33,25 @@ if config.get_offline_mode():
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
     os.environ["HF_HUB_OFFLINE"] = "1"
 
-processing = SegmentProcessing(config)
 logger = Logger(config)
-
 logger.log_print(f"Config file: {cli.get_config_path()}")
-logger.log_print(f"Loading input file: {cli.get_input_path()}")
-srt_reader = SrtReader(cli.get_input_path(), config)
-segments = srt_reader.get_segments()
 
-processing.process(segments)
+input_reader = SrtReader(cli.get_input_path(), config)
+if cli.get_retry_path() is not None:
+    retry_reader = SrtReader(cli.get_retry_path(), config)
+else:
+    retry_reader = None
+
+processing = SegmentProcessing(config, input_reader,
+                               retry_reader, logger)
+segments: list[Segment] = processing.process()
+logger.log_print(f"Segment count: {len(segments)}")
 window = Window(config, segments)
 
-if not cli.is_dry_run():
+if cli.is_dry_run():
+    for segment in segments:
+        segment.set_target_text(segment.get_source_text())
+else:
     logger.log_print(f"Loading model: {config.get_model_name()}")
     model = MadladModel(config, logger, device = "cuda:0") # MockModel1()
     logger.log_print(f"Model loaded on device: {model.get_device()}")
@@ -51,11 +59,10 @@ if not cli.is_dry_run():
     translator = Translator(model, config, window, logger)
     logger.log_print(f"Starting translation...")
     translator.run()
-else:
-    for segment in segments:
-        segment.set_target_text(segment.get_source_text())
 
+logger.log_print(f"Failed segments: {translator.get_failure_count()}")
 logger.log_print(f"Writing results to: {cli.get_output_path()}")
+logger.log_print(f"Segment count: {len(segments)}")
 SrtWriter(cli.get_output_path(), segments, config)
 
 logger.close()

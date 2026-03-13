@@ -88,3 +88,7 @@ class ConfigParserInterface(ABC):
     @abstractmethod
     def get_offline_mode(self) -> bool:
         pass
+
+    @abstractmethod
+    def get_failed_translation_marker(self) -> str:
+        pass

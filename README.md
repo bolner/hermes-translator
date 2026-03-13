@@ -74,9 +74,14 @@ Makefile commands:
            The config-file is a '.yaml' file that defines the translation settings.
            The result is written to the output file.
 
+      make run config=[config-file] input=[input-file] output=[output-file] retry=[retry-file]
+           Same as the previous, but the completed translations are used from
+             the 'retry file', which is a previous SRT result.
+           The 'failed-translation-marker' shows the failed segments. See: config file.
+
       make run dry-run=1 config=[config-file] input=[input-file] output=[output-file]
            Executes only the regex replacements defined in the config-file,
-           without loading the model.
+           without loading the model. (This can also have a 'retry-file' param.)
 
   make clean  - Remove the Python virtual environment.
   make test   - Execute the unit tests.
@@ -101,19 +106,28 @@ $ make run config=config-madlad.yaml input=my-sub-2.srt output=my-sub-2-en.srt
 
 ## Customizing the config file
 
-We need a separate config file for each combinations of:
-- Source language:
-  - The madlad model can get crazy easily if it encounters some special characters
-      or character combinations. Which depend on the language. The replace rules
-      are mostly for solving those issues.
-- Target language
-- GPU (Because of memory limitations and performance differences.)
+We need a separate config file for each source SRT, but those can be
+created from the sample config files per source language.
 
 Please send in your config files for new languages!
 (Each source language requires different "replace-rules". See below.
 The current config file is for Italian source language.)
 
 ```yaml
+# Copyright 2026 Tamas Bolner
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 model:
   # This can either be a local path or a model identifier from Hugging Face Model Hub.
   # If you set 'model.offline-mode' to 'false', then you can use "google/madlad400-3b-mt" here.
@@ -122,13 +136,9 @@ model:
   # A "true" value will not allow the Transformer library to make calls to
   # Huggingface every time you load the model (run the app).
   # The offline mode will only work if 'model.name' contains a folder path instead of a name.
-  # The "ture" value is recommended out of privacy concerns, but read the warning below:
-  #
-  # If the offline mode is forced, then you will not be able to use a model name
-  # (like "google/madlad400-3b-mt") in the 'model.name' setting, but you have to use a path
-  # to a local folder that contains all files.
+  # The "ture" value is recommended out of privacy concerns.
   # You can set it to false first, pull the model, then turn it to offline mode.
-  # Then the model will still be used from the cache dir: ~/.cache/huggingface/hub/...
+  # Then the model can be used from the cache dir: ~/.cache/huggingface/hub/...
   offline-mode: false
 
   # The only currently supported model type is "madlad".
@@ -145,7 +155,7 @@ model:
   #   that separation in the translated text.
   # The {ID} placeholder is necessary, because each token needs to be unique.
   # Possible values for the ID: 0, 1, 2, 3, ..., 126, 127
-  #  (But only 0 and 1 are used.)
+  #  (But only 0, 1 and 12 are used.)
   sentinel-token-template: "<extra_id_{ID}>"
 
   # How many inferences (prompts) to run in parallel.
@@ -194,8 +204,10 @@ document:
     - pattern: "([^\\w]+|^)s([^\\w]+|$)"
       replacement: "\\1sì\\2"
     
-    # Remove any newline and whitespace characters, because those
+    # Remove any whitespace characters, because those
     #   can make the madlad model behave erratically.
+    # The newline characters were already replaced by
+    #   the sentinel token 12.
     - pattern: "\\s+"
       replacement: " "
 
@@ -217,9 +229,33 @@ subtitle-timing:
 # Use the {TIME} placeholder to insert the datetime.
 # Leave it empty to disable logging.
 logging-path: var/run-{TIME}.log
+
+# If translating a segment failed, then this string
+# will be put into the "target text" field.
+# You can pass the resulting SRT file in the
+# "--continue" parameter. Then only those segments
+# will get translated, which contain the string
+# below.
+failed-translation-marker: "%TRANSLATION_FAILED%"
 ```
 
-## Running the unit tests
+## Continue a previous translation
+
+If the translation of some segments fail in an SRT file, then the process will
+still continue to the end. The failed ones will just get marked with a text,
+that is currently:
+- `%TRANSLATION_FAILED%`
+
+If you only wish re-run the translation for the failed ones, then you can use
+the `retry` parameter. But make sure to fix the problem first, by adding
+some new replace rules to the config file.
+
+Example retry:
+```
+$ make run config=config-madlad.yaml input=my-sub.srt output=my-sub-en-2.srt retry=my-sub-en.srt
+```
+
+# Running the unit tests
 
 ```
 $ make test

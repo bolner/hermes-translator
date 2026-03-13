@@ -23,6 +23,8 @@ class CliParser:
                     help="Path to the config file.")
         parser.add_argument("-i", "--input", dest="input",
                     help="Path to the input file.")
+        parser.add_argument("-r", "--retry", dest="retry",
+                    help="Retry a previous translation attempt (SRT) that contains failed segments.")
         parser.add_argument("-o", "--output", dest="output",
                     help="Path to the output file.")
         parser.add_argument("--dry-run", action="store_true", default=False,
@@ -41,3 +43,6 @@ class CliParser:
 
     def is_dry_run(self) -> bool:
         return self.__args.dryrun
+
+    def get_retry_path(self) -> str:
+        return self.__args.retry

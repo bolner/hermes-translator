@@ -29,7 +29,6 @@ class MadladModel(ModelInterface):
             logger: LoggerInterface, device: str = "cuda:0"):
         self.__model_name: str = config.get_model_name()
         self.__device: str = device
-        self.__logger = logger
         self.__model = compile(
             T5ForConditionalGeneration.from_pretrained(config.get_model_name()).to(device)
         )
@@ -47,15 +46,11 @@ class MadladModel(ModelInterface):
         Returns:
             list[str]: The generated texts. (Translations)
         """
-        self.__logger.log(f"Translating: {prompts}")
-
         inputs = self.__tokenizer(prompts, return_tensors="pt", padding=True).to(self.__device)
         with inference_mode():
             outputs = self.__model.generate(**inputs, max_new_tokens=512)
 
         translations = self.__tokenizer.batch_decode(outputs, skip_special_tokens=True)
-
-        self.__logger.log(f"Translations: {translations}")
 
         if len(translations) != len(prompts):
             raise RuntimeError("tokenizer.batch_decode returned the wrong number of translations.")

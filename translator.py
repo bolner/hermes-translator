@@ -28,22 +28,24 @@ class Translator:
                 window: WindowInterface, logger: LoggerInterface):
         self.__model: ModelInterface = model
         self.__window: WindowInterface = window
-        self.__logger = logger
-        self.__inference_batch_size = config.get_inference_batch_size()
+        self.__logger: LoggerInterface = logger
+        self.__inference_batch_size: int = config.get_inference_batch_size()
 
-        self.__prefix = config.get_prompt_prefix().replace(
+        self.__prefix: str = config.get_prompt_prefix().replace(
             "{LANG}", config.get_target_language()
         )
-        self.__context = config.get_static_context()
-        self.__sentinelToken1 = config.get_sentinel_token_template().replace(
+        self.__context: str = config.get_static_context()
+        self.__sentinelToken1: str = config.get_sentinel_token_template().replace(
             "{ID}", "0"
         )
-        self.__sentinelToken2 = config.get_sentinel_token_template().replace(
+        self.__sentinelToken2: str = config.get_sentinel_token_template().replace(
             "{ID}", "1"
         )
-        self.__newline_token = config.get_sentinel_token_template().replace(
+        self.__newline_token: str = config.get_sentinel_token_template().replace(
             "{ID}", "12"
         )
+        self.__failed_translation_marker: str = config.get_failed_translation_marker()
+        self.__failures: int = 0
 
     def run(self):
         ############################################################
@@ -51,11 +53,11 @@ class Translator:
         ############################################################
         prompt_batch: list[Segment] = []
 
-        self.__logger.log(f"- before the loop")
         while self.__window.next():
-            self.__logger.log(f"- Next in loop: {self.__window.get_current_segment().get_source_text()}")
-
             current: Segment = self.__window.get_current_segment()
+            if current.get_target_text() is not None: # "--retry" param was set to an SRT.
+                continue
+
             current.set_prompt(self.__construct_prompt())
             prompt_batch.append(current)
 
@@ -103,19 +105,43 @@ class Translator:
         for i in range(0, len(segments)):
             response = reponses[i]
             pos1 = response.find(self.__sentinelToken1)
+            text: str = None
+
             if pos1 < 0:
-                raise RuntimeError("Cannot find sentinel_token1 in a translation response: "
-                    f"'{response}'.\nPrompt:\n'{segments[i].get_prompt()}'.")
-            pos2 = response.find(self.__sentinelToken2)
-            if pos2 < 0:
-                raise RuntimeError("Cannot find sentinel_token2 in a translation response: "
-                    f"'{response}'.\nPrompt:\n'{segments[i].get_prompt()}'.")
+                text = self.__failed_translation_marker
+                self.__logger.log("Cannot find sentinel_token1 in a translation response:\n"
+                    f"{response}\n\nPrompt:\n{segments[i].get_prompt()}\n\nSource segment:\n"
+                    f"{segments[i].get_source_text()}")
+            else:
+                pos2 = response.find(self.__sentinelToken2)
+                if pos2 < 0:
+                    text = self.__failed_translation_marker
+                    self.__logger.log("Cannot find sentinel_token2 in a translation response:\n"
+                        f"{response}\n\nPrompt:\n{segments[i].get_prompt()}\n\nSource segment:\n"
+                        f"{segments[i].get_source_text()}")
+                else:
+                    if pos2 < pos1:
+                        text = self.__failed_translation_marker
+                        self.__logger.log("The sentinel tokens are in reverse order in a translation response:\n"
+                            f"{response}\n\nPrompt:\n{segments[i].get_prompt()}\n\nSource segment:\n"
+                            f"{segments[i].get_source_text()}")
             
-            if pos2 < pos1:
-                raise RuntimeError("The sentinel tokens are in reverse order in a translation "
-                    f"response: '{response}'.\nPrompt:\n'{segments[i].get_prompt()}'.")
-            
-            segments[i].set_target_text(response[pos1 + len(self.__sentinelToken1) : pos2].strip())
+            if text is None:
+                text = response[pos1 + len(self.__sentinelToken1) : pos2].strip()
+
+                if text == "":
+                    text = self.__failed_translation_marker
+                    self.__failures += 1
+                    self.__logger.log("Empty translation response:\n"
+                            f"{response}\n\nPrompt:\n{segments[i].get_prompt()}\n\nSource segment:\n"
+                            f"{segments[i].get_source_text()}")
+            else:
+                self.__failures += 1
+
+            segments[i].set_target_text(text)
             segments[i].set_target_start_ms(segments[i].get_source_start_ms())
             segments[i].set_target_end_ms(segments[i].get_source_end_ms())
             segments[i].set_prompt(None)
+
+    def get_failure_count(self) -> int:
+        return self.__failures

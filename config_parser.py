@@ -98,3 +98,6 @@ class ConfigParser(ConfigParserInterface):
     def get_offline_mode(self) -> bool:
         return self.__to_bool("model.offline-mode",
             self.config['model']['offline-mode'])
+
+    def get_failed_translation_marker(self) -> str:
+        return str(self.config['failed-translation-marker'])

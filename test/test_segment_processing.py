@@ -16,20 +16,25 @@ limitations under the License.
 
 import unittest
 from mock.mock_config_parser1 import MockConfigParser1
+from mock.mock_srt_reader import MockSrtReader
+from mock.mock_logger import MockLogger1
 from segment_processing import SegmentProcessing
 from primitives.segment import Segment
 
 class TestSegmentProcessing(unittest.TestCase):
     def test_segment_processing(self):
         config = MockConfigParser1()
-        proc = SegmentProcessing(config)
-        list = [
-            Segment(1, " First\n\nSentence.  ", 0, 0),
-            Segment(2, "[THIS WILL GET REMOVED]", 0, 0),
-            Segment(3, "\nLast  \t  Sentence.\t", 0, 0)
-        ]
+        proc = SegmentProcessing(
+            config = config,
+            input_reader = MockSrtReader([
+                Segment(1, " First\n\nSentence.  ", 0, 0),
+                Segment(2, "[THIS WILL GET REMOVED]", 0, 0),
+                Segment(3, "\nLast  \t  Sentence.\t", 0, 0)
+            ], "/tmp/input.srt"),
+            retry_reader = None,
+            logger = MockLogger1() )
 
-        proc.process(list)
+        list = proc.process()
 
         self.assertEqual(list[0].get_source_text(), "First Sentence.",
             "Processing the first sentence failed.")
