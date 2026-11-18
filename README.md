@@ -144,6 +144,15 @@ model:
   # The only currently supported model type is "madlad".
   type: madlad
 
+  # Inference precision of the model. (The 3B model needs ~12 GB VRAM in fp32.)
+  #   fp32 - Full precision. ~12 GB VRAM. The default (original behaviour).
+  #   fp16 - Half precision. ~6 GB VRAM, 2-4x faster than fp32 on
+  #          Turing+ GPUs (e.g. RTX 20xx/30xx).
+  #   int8 - 8-bit quantization via the bitsandbytes library. ~4 GB VRAM,
+  #          recommended for 8 GB VRAM cards (e.g. RTX 2080).
+  #          (Requires a CUDA GPU, like fp16.)
+  dtype: fp16
+
   # All prompts will start with this string.
   # {LANG} is a placeholder for the BCP-47 code of the target language,
   #   like "en", "de", "it", etc.

@@ -29,6 +29,9 @@ class MockConfigParser1(ConfigParserInterface):
     def get_sentinel_token_template(self) -> str:
         return "<extra_id_{ID}>"
 
+    def get_model_dtype(self) -> str:
+        return "fp16"
+
     def get_inference_batch_size(self) -> int:
         return 4
 

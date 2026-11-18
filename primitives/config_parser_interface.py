@@ -34,6 +34,10 @@ class ConfigParserInterface(ABC):
         pass
 
     @abstractmethod
+    def get_model_dtype(self) -> str:
+        pass
+
+    @abstractmethod
     def get_inference_batch_size(self) -> int:
         pass
 

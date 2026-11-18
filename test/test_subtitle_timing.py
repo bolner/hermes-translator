@@ -31,6 +31,9 @@ class MockConfigNoBackwards(ConfigParserInterface):
     def get_model_type(self) -> str:
         return "madlad"
 
+    def get_model_dtype(self) -> str:
+        return "fp16"
+
     def get_prompt_prefix(self) -> str:
         return "<2{LANG}>"
 
