@@ -69,7 +69,7 @@ class MadladModel(ModelInterface):
                    f"on device {self.__device}")
         return compile(
             T5ForConditionalGeneration.from_pretrained(
-                self.__model_name, torch_dtype=torch_dtype
+                self.__model_name, dtype=torch_dtype
             ).to(self.__device)
         )
     
