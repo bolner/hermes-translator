@@ -21,6 +21,7 @@ from window import Window
 from logger import Logger
 from segment_processing import SegmentProcessing
 from srt_writer import SrtWriter
+from subtitle_timing import SubtitleTiming
 from test.mock.mock_model1 import MockModel1
 from cli_parser import CliParser
 from primitives.segment import Segment
@@ -61,6 +62,10 @@ else:
     translator.run()
 
 logger.log_print(f"Failed segments: {translator.get_failure_count()}")
+
+timing = SubtitleTiming(config, logger)
+timing.run(segments)
+
 logger.log_print(f"Writing results to: {cli.get_output_path()}")
 logger.log_print(f"Segment count: {len(segments)}")
 SrtWriter(cli.get_output_path(), segments, config)
