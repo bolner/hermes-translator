@@ -55,6 +55,13 @@ class ConfigParser(ConfigParserInterface):
     def get_sentinel_token_template(self) -> str:
         return str(self.config['model']['sentinel-token-template'])
 
+    def get_model_dtype(self) -> str:
+        dtype = str(self.config['model'].get('dtype', 'fp32'))
+        if dtype not in ("fp32", "fp16", "int8"):
+            raise ValueError(f"Invalid model dtype '{dtype}' in config file "
+                             f"'{self.__config_path}'. Allowed values: fp32, fp16, int8.")
+        return dtype
+
     def get_inference_batch_size(self) -> int:
         return int(self.config['model']['inference-batch-size'])
 
