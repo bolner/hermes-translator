@@ -83,7 +83,7 @@ class MadladModel(ModelInterface):
         """
         inputs = self.__tokenizer(prompts, return_tensors="pt", padding=True).to(self.__device)
         with inference_mode():
-            outputs = self.__model.generate(**inputs, max_new_tokens=512)
+            outputs = self.__model.generate(**inputs, max_new_tokens=512, repetition_penalty=1.1, num_beams=2)
 
         translations = self.__tokenizer.batch_decode(outputs, skip_special_tokens=True)
 

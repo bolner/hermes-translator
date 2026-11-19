@@ -228,7 +228,7 @@ document:
 # (The numerical values are all floating-point.)
 subtitle-timing:
   reading-speed-chars-per-second: 14.6
-  min-duration-seconds: 0.5
+  min-duration-seconds: 1.5
   max-duration-seconds: 5.0
   allow-backwards-adjustment: true
 
